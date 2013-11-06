@@ -69,8 +69,14 @@ module Lims
       # The server expects the environmental settings to have `context_service` object that
       # responds to the `new` method, taking the HTTP request and returning a context object
       # that can be used for any actions that may be created.
+      #
+      # The server also expects the client sending the user name and
+      # application id of the client ([String]) in the HTTP request header
       before do
         @context = settings.context_service.new(request, lambda { |u| self.url(u, true) })
+
+        @context.user = @env["HTTP_USERNAME"]
+        @context.application_id = @env["HTTP_APPLICATION_ID"]
       end
 
       # @method before_uuid
@@ -160,8 +166,6 @@ module Lims
         general_error(415, 'content type cannot be decoded')
 
         @attributes = decoder.call(request.body)
-        @context.user = @attributes["user"] if @attributes["user"]
-        @context.application_id = @attributes["application_id"] if @attributes["application_id"]
       end
 
       # @method after_success
